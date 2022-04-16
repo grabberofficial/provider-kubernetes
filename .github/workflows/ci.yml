@@ -73,8 +73,13 @@ jobs:
           BUILD_ARGS: "--load"
       
 
-      - name: Show images
-        run: docker image ls
+      - name: Get images
+        run: |
+          docker image ls
+          export PROVIDER_IMAGE=$(docker image ls | grep provider-kubernetes-amd64 | awk '{print $1}')
+          export CONTROLLER_IMAGE=$(docker image ls | grep provider-kubernetes-controller-amd64 | awk '{print $1}')
+          echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
+          echo "CONTROLLER_IMAGE=${CONTROLLER_IMAGE}" >> $GITHUB_ENV
 
       - name: AWS cli install action
         uses: chrislennon/action-aws-cli@1.1
@@ -91,8 +96,8 @@ jobs:
 
       - name: Change tag
         run: |
-          docker tag build-7ed42267/provider-kubernetes-controller-amd64:latest 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
-          docker tag build-7ed42267/provider-kubernetes-amd64:latest 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
+          docker tag "${CONTROLLER_IMAGE}:latest" 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
+          docker tag "${PROVIDER_IMAGE}:latest" 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
 
       - name: Push image
         run: |
