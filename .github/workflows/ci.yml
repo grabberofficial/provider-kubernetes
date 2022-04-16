@@ -73,4 +73,5 @@ jobs:
           BUILD_ARGS: "--load"
       
 
-        
+      - name: Publish Artifacts to S3 and Docker Hub
+        run: docker image ls
