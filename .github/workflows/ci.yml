@@ -73,7 +73,7 @@ jobs:
           BUILD_ARGS: "--load"
       
 
-      - name: Publish Artifacts to S3 and Docker Hub
+      - name: Show images
         run: docker image ls
 
       - name: AWS cli install action
@@ -87,7 +87,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: ECR login
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 636334651895.dkr.ecr.eu-central-1.amazonaws.com
 
       - name: Change tag
         run: |
