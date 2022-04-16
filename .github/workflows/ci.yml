@@ -75,3 +75,26 @@ jobs:
 
       - name: Publish Artifacts to S3 and Docker Hub
         run: docker image ls
+
+      - name: AWS cli install action
+        uses: chrislennon/action-aws-cli@1.1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: ECR login
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR
+
+      - name: Change tag
+        run: |
+          docker tag build-7ed42267/provider-kubernetes-controller-amd64:latest 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
+          docker tag build-7ed42267/provider-kubernetes-amd64:latest 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
+
+      - name: Push image
+        run: |
+          docker push 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
+          docker push 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
