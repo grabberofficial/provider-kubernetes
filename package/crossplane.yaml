@@ -7,4 +7,11 @@ metadata:
       The Crossplane Kubernetes provider enables management of Kubernetes Objects.
 spec:
   controller:
-    image: crossplane/provider-kubernetes-controller:VERSION
+    image: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:VERSION
+    permissionRequests:
+    - apiGroups:
+      - *
+      resources:
+      - *
+      verbs:
+      - *
