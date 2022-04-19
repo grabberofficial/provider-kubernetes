@@ -10,8 +10,8 @@ spec:
     image: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:VERSION
     permissionRequests:
     - apiGroups:
-      - *
+      - "*"
       resources:
-      - *
+      - "*"
       verbs:
-      - *
+      - "*"
