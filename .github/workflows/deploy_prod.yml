@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Setup package
         run: |
+          ls -la
+          pwd
           cp .github/crossplane.yaml.prod package/crossplane.yaml
 
       - name: Setup QEMU
