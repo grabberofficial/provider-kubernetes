@@ -13,12 +13,18 @@ env:
   GO_VERSION: '1.16'
   GOLANGCI_VERSION: 'v1.31'
   DOCKER_BUILDX_VERSION: 'v0.4.2'
+  ECR_CONTROLLER: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/polkapad-provider-kubernetes-controller
+  ROLE_CONTROLLER: "arn:aws:iam::636334651895:role/github-ecr-polkapad-provider-kubernetes-controller"
+  ECR: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/polkapad-provider-kubernetes
+  ROLE: "arn:aws:iam::636334651895:role/github-ecr-polkapad-provider-kubernetes"
 
 jobs:
 
   publish-artifacts:
     runs-on: ubuntu-18.04
-
+    permissions:
+      id-token: write # required to use OIDC authentication
+      contents: read # required to checkout the code from the repo
     steps:
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
@@ -81,25 +87,39 @@ jobs:
           echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
           echo "CONTROLLER_IMAGE=${CONTROLLER_IMAGE}" >> $GITHUB_ENV
 
+      - name: Change tag
+        run: |
+          docker tag "${CONTROLLER_IMAGE}:latest" "${ECR_CONTROLLER}:v0.3.0"
+          docker tag "${PROVIDER_IMAGE}:latest" "${ECR}:v0.3.0"
+
       - name: AWS cli install action
         uses: chrislennon/action-aws-cli@1.1
 
-      - name: Configure AWS Credentials
+      - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ env.ROLE_CONTROLLER }}
+          role-duration-seconds: 900 # the ttl of the session, in seconds.
+          aws-region: eu-central-1 # use your region here.
 
       - name: ECR login
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 636334651895.dkr.ecr.eu-central-1.amazonaws.com
-
-      - name: Change tag
-        run: |
-          docker tag "${CONTROLLER_IMAGE}:latest" 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
-          docker tag "${PROVIDER_IMAGE}:latest" 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_CONTROLLER
 
       - name: Push image
         run: |
-          docker push 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider-controller:v0.3.0
-          docker push 636334651895.dkr.ecr.eu-central-1.amazonaws.com/crossplane-k8s-provider:v0.3.0
+          docker push "${ECR_CONTROLLER}:v0.3.0"
+
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.ROLE }}
+          role-duration-seconds: 900 # the ttl of the session, in seconds.
+          aws-region: eu-central-1 # use your region here.
+
+      - name: ECR login
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR
+
+      - name: Push image
+        run: |
+          docker push "${ECR}:v0.3.0"
