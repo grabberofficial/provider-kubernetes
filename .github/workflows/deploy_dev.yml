@@ -81,7 +81,7 @@ jobs:
         run: |
           docker image ls
           export PROVIDER_IMAGE=$(docker image ls | grep provider-kubernetes-amd64 | awk '{print $1}')
-          export PROVIDER_CONTROLLER_IMAGE=$(docker image ls |provider-kubernetes-controller-amd64 | awk '{print $1}')
+          export PROVIDER_CONTROLLER_IMAGE=$(docker image ls | grep provider-kubernetes-controller-amd64 | awk '{print $1}')
           echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
           echo "PROVIDER_CONTROLLER_IMAGE=${PROVIDER_CONTROLLER_IMAGE}" >> $GITHUB_ENV
 
