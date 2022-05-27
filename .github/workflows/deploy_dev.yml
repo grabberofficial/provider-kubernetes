@@ -24,6 +24,11 @@ jobs:
       id-token: write # required to use OIDC authentication
       contents: read # required to checkout the code from the repo
     steps:
+
+      - name: Setup package
+        run: |
+          cp .github/crossplane.yaml.dev package/crossplane.yaml
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
         with:

@@ -1,11 +1,11 @@
 name: Deploy Prod
 
 on:
-#  push:
-#    branches:
-#      - main
-#      - release-*
-#  pull_request: {}
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request: {}
   workflow_dispatch: {}
 
 env:
@@ -24,6 +24,10 @@ jobs:
       id-token: write # required to use OIDC authentication
       contents: read # required to checkout the code from the repo
     steps:
+      - name: Setup package
+        run: |
+          cp .github/crossplane.yaml.prod package/crossplane.yaml
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -81,7 +85,9 @@ jobs:
         run: |
           docker image ls
           export PROVIDER_IMAGE=$(docker image ls | grep provider-kubernetes-amd64 | awk '{print $1}')
+          export PROVIDER_CONTROLLER_IMAGE=$(docker image ls | grep provider-kubernetes-controller-amd64 | awk '{print $1}')
           echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
+          echo "PROVIDER_CONTROLLER_IMAGE=${PROVIDER_CONTROLLER_IMAGE}" >> $GITHUB_ENV
 
       - name: Expose git commit data
         uses: rlespinasse/git-commit-data-action@v1
@@ -89,6 +95,7 @@ jobs:
       - name: Change tag
         run: |
           docker tag "${PROVIDER_IMAGE}:latest" "${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}"
+          docker tag "${PROVIDER_CONTROLLER_IMAGE}:latest" "${ECR}:controller-v0.3.0"
 
       - name: AWS cli install action
         uses: chrislennon/action-aws-cli@1.1
@@ -106,3 +113,4 @@ jobs:
       - name: Push image
         run: |
           docker push "${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}"
+          docker push "${ECR}:controller-v0.3.0"
