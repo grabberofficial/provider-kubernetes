@@ -13,8 +13,6 @@ env:
   GO_VERSION: '1.16'
   GOLANGCI_VERSION: 'v1.31'
   DOCKER_BUILDX_VERSION: 'v0.4.2'
-  ECR_CONTROLLER: 081239602556.dkr.ecr.eu-central-1.amazonaws.com/polkapad-provider-kubernetes-controller
-  ROLE_CONTROLLER: "arn:aws:iam::081239602556:role/github-ecr-polkapad-provider-kubernetes-controller"
   ECR: 081239602556.dkr.ecr.eu-central-1.amazonaws.com/polkapad-provider-kubernetes
   ROLE: "arn:aws:iam::081239602556:role/github-ecr-polkapad-provider-kubernetes"
 
@@ -83,32 +81,14 @@ jobs:
         run: |
           docker image ls
           export PROVIDER_IMAGE=$(docker image ls | grep provider-kubernetes-amd64 | awk '{print $1}')
-          export CONTROLLER_IMAGE=$(docker image ls | grep provider-kubernetes-controller-amd64 | awk '{print $1}')
           echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
-          echo "CONTROLLER_IMAGE=${CONTROLLER_IMAGE}" >> $GITHUB_ENV
 
       - name: Change tag
         run: |
-          docker tag "${CONTROLLER_IMAGE}:latest" "${ECR_CONTROLLER}:v0.3.0"
           docker tag "${PROVIDER_IMAGE}:latest" "${ECR}:v0.3.0"
 
       - name: AWS cli install action
         uses: chrislennon/action-aws-cli@1.1
-
-      - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ env.ROLE_CONTROLLER }}
-          role-duration-seconds: 900 # the ttl of the session, in seconds.
-          aws-region: eu-central-1 # use your region here.
-
-      - name: ECR login
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_CONTROLLER
-
-      - name: Push image
-        run: |
-          docker push "${ECR_CONTROLLER}:v0.3.0"
-
 
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1
