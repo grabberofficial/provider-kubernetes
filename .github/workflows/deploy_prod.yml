@@ -83,9 +83,12 @@ jobs:
           export PROVIDER_IMAGE=$(docker image ls | grep provider-kubernetes-amd64 | awk '{print $1}')
           echo "PROVIDER_IMAGE=${PROVIDER_IMAGE}" >> $GITHUB_ENV
 
+      - name: Expose git commit data
+        uses: rlespinasse/git-commit-data-action@v1
+
       - name: Change tag
         run: |
-          docker tag "${PROVIDER_IMAGE}:latest" "${ECR}:v0.3.0"
+          docker tag "${PROVIDER_IMAGE}:latest" "${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}"
 
       - name: AWS cli install action
         uses: chrislennon/action-aws-cli@1.1
@@ -102,4 +105,4 @@ jobs:
 
       - name: Push image
         run: |
-          docker push "${ECR}:v0.3.0"
+          docker push "${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}"
