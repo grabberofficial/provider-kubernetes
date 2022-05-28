@@ -41,6 +41,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Expose git commit data
+        uses: rlespinasse/git-commit-data-action@v1
+
       - name: Setup package
         run: |
           cp .github/crossplane.yaml.prod package/crossplane.yaml
@@ -115,3 +118,26 @@ jobs:
         run: |
           docker push "${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}"
           docker push "${ECR}:controller-v0.3.0"
+          
+
+      - uses: kobtea/setup-jsonnet-action@v1
+
+      - name: Clone Argo repo
+        uses: actions/checkout@v3
+        with:
+          repository: 'polkapad/argocd'
+          ref: main
+          ssh-key: ${{ secrets.ARGOCD_REPO_SSH }}
+          path: argo
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+
+      - name: Write TAG to argo
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          cd argo
+          mkdir -p versions/${{github.repository_owner}}
+          jsonnet libs/ci_image.libsonnet -A env=prod -A project=crossplane_k8s_provider -A image="${ECR}:${{ env.GIT_COMMIT_SHORT_SHA }}" > out.json
+          mv out.json env.json
+          git config user.email "${{ env.GIT_COMMIT_AUTHOR_EMAIL }}"
+          git config user.name "${{ env.GIT_COMMIT_AUTHOR_NAME }}"
+          git add env.json && git commit -m "${{ env.GIT_COMMIT_MESSAGE_SUBJECT }} ${{ env.GIT_COMMIT_SHORT_SHA }}" && git push || true
