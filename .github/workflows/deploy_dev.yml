@@ -13,8 +13,8 @@ env:
   GO_VERSION: '1.16'
   GOLANGCI_VERSION: 'v1.31'
   DOCKER_BUILDX_VERSION: 'v0.4.2'
-  ECR: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/polkapad-provider-kubernetes
-  ROLE: "arn:aws:iam::636334651895:role/github-ecr-polkapad-provider-kubernetes"
+  ECR: 636334651895.dkr.ecr.eu-central-1.amazonaws.com/grabberofficial-provider-kubernetes
+  ROLE: "arn:aws:iam::636334651895:role/github-ecr-grabberofficial-provider-kubernetes"
 
 jobs:
 
